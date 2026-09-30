@@ -198,6 +198,155 @@ function Ficha() {
           <SignaturePad label="Colaborador Academia Unidade" />
         </div>
       </div>
+
+      <VersoMateriais />
+    </div>
+  );
+}
+
+interface MaterialRow {
+  id: number;
+  material: string;
+  qtd: string;
+  unidade: string;
+  pacote: boolean;
+  caixa: boolean;
+}
+
+let nextId = 100;
+
+function novaLinha(): MaterialRow {
+  return { id: nextId++, material: "", qtd: "", unidade: "", pacote: false, caixa: false };
+}
+
+function VersoMateriais() {
+  const [local, setLocal] = useState("");
+  const [data, setData] = useState("");
+  const [linhas, setLinhas] = useState<MaterialRow[]>(() =>
+    Array.from({ length: 8 }, novaLinha),
+  );
+
+  const update = (id: number, patch: Partial<MaterialRow>) =>
+    setLinhas((prev) => prev.map((l) => (l.id === id ? { ...l, ...patch } : l)));
+
+  return (
+    <div className="verso mx-auto mt-6 max-w-[820px] border-2 border-black bg-white text-black print:mt-0 print:max-w-none print:border">
+      <div className="border-b-2 border-black bg-neutral-200 py-2 text-center text-[19px] font-bold uppercase">
+        Lista de Materiais
+      </div>
+
+      <div className="grid grid-cols-2 border-b-2 border-black">
+        <div className="flex items-center gap-1 border-r-2 border-black px-2 py-1.5">
+          <span className="whitespace-nowrap text-[12px] font-bold uppercase">Local:</span>
+          <input
+            value={local}
+            onChange={(e) => setLocal(e.target.value)}
+            className={inputClass}
+          />
+        </div>
+        <div className="flex items-center gap-1 px-2 py-1.5">
+          <span className="whitespace-nowrap text-[12px] font-bold uppercase">
+            Data e horario:
+          </span>
+          <input
+            value={data}
+            onChange={(e) => setData(e.target.value)}
+            className={inputClass}
+          />
+        </div>
+      </div>
+
+      <div className="overflow-x-auto">
+        <div className="min-w-[560px]">
+        <div className="grid grid-cols-[2rem_minmax(9rem,1fr)_4.5rem_4.5rem_4.5rem_4.5rem] border-b border-black bg-neutral-300 text-[11px] font-bold uppercase leading-tight">
+        <div className="border-r border-black px-1 py-2 text-center">#</div>
+        <div className="border-r border-black px-2 py-2">Material</div>
+        <div className="border-r border-black px-1 py-2 text-center">Qtd.</div>
+        <div className="border-r border-black px-1 py-2 text-center">Unidade</div>
+        <div className="border-r border-black px-1 py-2 text-center">Pacote</div>
+        <div className="px-1 py-2 text-center">Caixa</div>
+      </div>
+
+      {linhas.map((linha, i) => (
+        <div
+          key={linha.id}
+          className="grid grid-cols-[2rem_minmax(9rem,1fr)_4.5rem_4.5rem_4.5rem_4.5rem] border-b border-black text-[12px]"
+        >
+          <div className="flex items-center justify-center border-r border-black px-1 text-[11px]">
+            {i + 1}
+          </div>
+          <div className="border-r border-black">
+            <input
+              value={linha.material}
+              onChange={(e) => update(linha.id, { material: e.target.value })}
+              placeholder="Material..."
+              className={inputClass}
+            />
+          </div>
+          <div className="border-r border-black">
+            <input
+              value={linha.qtd}
+              onChange={(e) => update(linha.id, { qtd: e.target.value })}
+              inputMode="decimal"
+              className={`${inputClass} text-center`}
+            />
+          </div>
+          <div className="border-r border-black">
+            <input
+              value={linha.unidade}
+              onChange={(e) => update(linha.id, { unidade: e.target.value })}
+              placeholder="un., m, m²..."
+              className={`${inputClass} text-center`}
+            />
+          </div>
+          <div className="flex items-center justify-center border-r border-black">
+            <button
+              type="button"
+              aria-pressed={linha.pacote}
+              onClick={() => update(linha.id, { pacote: !linha.pacote, caixa: false })}
+              className="h-4 w-4 border border-black bg-neutral-100 text-[11px] font-bold leading-none print:bg-white"
+            >
+              {linha.pacote ? "X" : ""}
+            </button>
+          </div>
+          <div className="flex items-center justify-center">
+            <button
+              type="button"
+              aria-pressed={linha.caixa}
+              onClick={() => update(linha.id, { caixa: !linha.caixa, pacote: false })}
+              className="h-4 w-4 border border-black bg-neutral-100 text-[11px] font-bold leading-none print:bg-white"
+            >
+              {linha.caixa ? "X" : ""}
+            </button>
+          </div>
+        </div>
+        ))}
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between px-3 py-2">
+        <span className="text-[11px] uppercase text-neutral-600">
+          Marque Pacote ou Caixa quando a quantidade for fechada.
+        </span>
+        <div className="no-print flex gap-2">
+          <button
+            type="button"
+            onClick={() => setLinhas((prev) => [...prev, novaLinha()])}
+            className="rounded border border-black bg-neutral-100 px-3 py-1 text-[12px] font-semibold"
+          >
+            + Adicionar linha
+          </button>
+          {linhas.length > 1 && (
+            <button
+              type="button"
+              onClick={() => setLinhas((prev) => prev.slice(0, -1))}
+              className="rounded border border-black px-3 py-1 text-[12px]"
+            >
+              Remover
+            </button>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
