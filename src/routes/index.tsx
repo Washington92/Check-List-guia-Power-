@@ -320,7 +320,9 @@ function VersoMateriais() {
             </button>
           </div>
         </div>
-      ))}
+        ))}
+        </div>
+      </div>
 
       <div className="flex items-center justify-between px-3 py-2">
         <span className="text-[11px] uppercase text-neutral-600">
