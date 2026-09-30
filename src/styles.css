@@ -156,7 +156,8 @@
   .verso {
     break-before: page;
     break-inside: avoid;
-    min-height: calc(297mm - 16mm);
+    height: calc(297mm - 16mm);
+    overflow: hidden;
   }
 
   .ficha {
@@ -164,7 +165,7 @@
   }
 
   .material-row {
-    min-height: 9mm;
+    height: 10mm;
   }
 
   input,
