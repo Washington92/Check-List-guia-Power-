@@ -155,10 +155,16 @@
 
   .verso {
     break-before: page;
+    break-inside: avoid;
+    min-height: calc(297mm - 16mm);
   }
 
   .ficha {
     break-inside: avoid;
+  }
+
+  .material-row {
+    min-height: 9mm;
   }
 
   input,
