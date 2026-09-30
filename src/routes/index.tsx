@@ -256,7 +256,9 @@ function VersoMateriais() {
         </div>
       </div>
 
-      <div className="grid grid-cols-[2rem_minmax(9rem,1fr)_4.5rem_4.5rem_4.5rem_4.5rem] border-b border-black bg-neutral-300 text-[11px] font-bold uppercase leading-tight">
+      <div className="overflow-x-auto">
+        <div className="min-w-[560px]">
+        <div className="grid grid-cols-[2rem_minmax(9rem,1fr)_4.5rem_4.5rem_4.5rem_4.5rem] border-b border-black bg-neutral-300 text-[11px] font-bold uppercase leading-tight">
         <div className="border-r border-black px-1 py-2 text-center">#</div>
         <div className="border-r border-black px-2 py-2">Material</div>
         <div className="border-r border-black px-1 py-2 text-center">Qtd.</div>
