@@ -155,10 +155,17 @@
 
   .verso {
     break-before: page;
+    break-inside: avoid;
+    height: calc(297mm - 16mm);
+    overflow: hidden;
   }
 
   .ficha {
     break-inside: avoid;
+  }
+
+  .material-row {
+    height: 10mm;
   }
 
   input,
