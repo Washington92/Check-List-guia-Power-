@@ -142,3 +142,25 @@
     color: var(--color-foreground);
   }
 }
+
+@page {
+  size: A4;
+  margin: 8mm;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  .ficha {
+    break-inside: avoid;
+  }
+
+  input,
+  textarea {
+    border-color: #000 !important;
+    color: #000 !important;
+  }
+}
+
