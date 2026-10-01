@@ -129,7 +129,7 @@ function Ficha() {
           Serviço Executado
         </div>
 
-        <div className="grid grid-cols-1 gap-2 p-3 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-2 p-3 sm:grid-cols-3 print:grid-cols-3 print:gap-1 print:p-2">
           {SERVICOS.map((s) => (
             <label key={s} className="flex items-center gap-2 text-[11.5px] uppercase">
               <Caixa checked={!!marcados[s]} onChange={toggle(s)} />
@@ -193,7 +193,7 @@ function Ficha() {
           Assinatura dos Responsaveis
         </div>
 
-        <div className="grid grid-cols-1 gap-6 p-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-6 p-4 sm:grid-cols-2 print:grid-cols-2 print:gap-4 print:p-2">
           <SignaturePad label="Tecnico TI Aguia Power" />
           <SignaturePad label="Colaborador Academia Unidade" />
         </div>

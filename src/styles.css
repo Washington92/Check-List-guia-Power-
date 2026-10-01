@@ -164,7 +164,7 @@
   }
 
   .ficha textarea {
-    height: auto;
+    max-height: 16mm;
   }
 
   .ficha canvas {
