@@ -1,17 +1,34 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 
-export function SignaturePad({ label }: { label: string }) {
+export function SignaturePad({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string | null;
+  onChange: (dataUrl: string | null) => void;
+}) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const drawing = useRef(false);
-  const [hasInk, setHasInk] = useState(false);
+  const lastLoaded = useRef<string | null>(null);
 
+  const ctxOf = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return null;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return null;
+    return ctx;
+  };
+
+  // Prepara o canvas na densidade correta da tela
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ratio = window.devicePixelRatio || 1;
     const rect = canvas.getBoundingClientRect();
-    canvas.width = rect.width * ratio;
-    canvas.height = rect.height * ratio;
+    canvas.width = Math.max(1, rect.width * ratio);
+    canvas.height = Math.max(1, rect.height * ratio);
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
     ctx.scale(ratio, ratio);
@@ -21,6 +38,29 @@ export function SignaturePad({ label }: { label: string }) {
     ctx.strokeStyle = "#111111";
   }, []);
 
+  // Sincroniza com o estado externo (rascunho salvo ou limpeza da ficha)
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const ctx = ctxOf();
+    if (!canvas || !ctx) return;
+    if (value === lastLoaded.current) return;
+    lastLoaded.current = value;
+
+    if (!value) {
+      const ratio = window.devicePixelRatio || 1;
+      ctx.clearRect(0, 0, canvas.width / ratio, canvas.height / ratio);
+      return;
+    }
+
+    const img = new Image();
+    img.onload = () => {
+      const ratio = window.devicePixelRatio || 1;
+      ctx.clearRect(0, 0, canvas.width / ratio, canvas.height / ratio);
+      ctx.drawImage(img, 0, 0, canvas.width / ratio, canvas.height / ratio);
+    };
+    img.src = value;
+  }, [value]);
+
   const pos = (e: React.PointerEvent<HTMLCanvasElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
     return { x: e.clientX - rect.left, y: e.clientY - rect.top };
@@ -28,10 +68,9 @@ export function SignaturePad({ label }: { label: string }) {
 
   const start = (e: React.PointerEvent<HTMLCanvasElement>) => {
     e.currentTarget.setPointerCapture(e.pointerId);
-    const ctx = canvasRef.current?.getContext("2d");
+    const ctx = ctxOf();
     if (!ctx) return;
     drawing.current = true;
-    setHasInk(true);
     const { x, y } = pos(e);
     ctx.beginPath();
     ctx.moveTo(x, y);
@@ -40,7 +79,7 @@ export function SignaturePad({ label }: { label: string }) {
   const move = (e: React.PointerEvent<HTMLCanvasElement>) => {
     if (!drawing.current) return;
     e.preventDefault();
-    const ctx = canvasRef.current?.getContext("2d");
+    const ctx = ctxOf();
     if (!ctx) return;
     const { x, y } = pos(e);
     ctx.lineTo(x, y);
@@ -48,15 +87,23 @@ export function SignaturePad({ label }: { label: string }) {
   };
 
   const end = () => {
+    if (!drawing.current) return;
     drawing.current = false;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const dataUrl = canvas.toDataURL("image/png");
+    lastLoaded.current = dataUrl;
+    onChange(dataUrl);
   };
 
   const clear = () => {
     const canvas = canvasRef.current;
-    const ctx = canvas?.getContext("2d");
+    const ctx = ctxOf();
     if (!canvas || !ctx) return;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    setHasInk(false);
+    const ratio = window.devicePixelRatio || 1;
+    ctx.clearRect(0, 0, canvas.width / ratio, canvas.height / ratio);
+    lastLoaded.current = null;
+    onChange(null);
   };
 
   return (
@@ -77,7 +124,7 @@ export function SignaturePad({ label }: { label: string }) {
       <button
         type="button"
         onClick={clear}
-        disabled={!hasInk}
+        disabled={!value}
         className="no-print mt-1 self-center text-[10px] uppercase text-neutral-500 underline disabled:opacity-40"
       >
         Limpar assinatura
