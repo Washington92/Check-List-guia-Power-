@@ -167,7 +167,8 @@
     max-height: 16mm;
   }
 
-  .ficha canvas {
+  .ficha canvas,
+  .ficha .sig-area {
     height: 70px !important;
   }
 
