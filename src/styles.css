@@ -160,8 +160,7 @@
 
   .ficha {
     break-inside: avoid;
-    break-after: page;
-    zoom: 0.92;
+    zoom: 0.85;
   }
 
   .ficha textarea {
