@@ -144,28 +144,43 @@
 }
 
 @page {
-  size: A4;
-  margin: 8mm;
+  size: A4 portrait;
+  margin: 6mm;
 }
 
 @media print {
+  html,
+  body {
+    width: 210mm;
+  }
+
   .no-print {
     display: none !important;
+  }
+
+  .ficha {
+    break-inside: avoid;
+    break-after: page;
+    zoom: 0.92;
+  }
+
+  .ficha textarea {
+    height: auto;
+  }
+
+  .ficha canvas {
+    height: 70px !important;
   }
 
   .verso {
     break-before: page;
     break-inside: avoid;
-    height: calc(297mm - 16mm);
+    max-height: calc(297mm - 12mm);
     overflow: hidden;
   }
 
-  .ficha {
-    break-inside: avoid;
-  }
-
   .material-row {
-    height: 10mm;
+    height: 11mm;
   }
 
   input,
