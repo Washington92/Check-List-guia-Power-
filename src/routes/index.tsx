@@ -146,6 +146,51 @@ const vazio = (): Dados => ({
 });
 
 const CHAVE = "ficha-checklist-rascunho";
+const HIST = "fichas-historico";
+
+interface Registro {
+  id: string;
+  atualizado: number;
+  dados: Dados;
+}
+
+function lerHist(): Registro[] {
+  try {
+    return JSON.parse(localStorage.getItem(HIST) || "[]") as Registro[];
+  } catch {
+    return [];
+  }
+}
+
+function gravarHist(l: Registro[]): "ok" | "semfotos" | "erro" {
+  try {
+    localStorage.setItem(HIST, JSON.stringify(l));
+    return "ok";
+  } catch {
+    try {
+      localStorage.setItem(HIST, JSON.stringify(l.map((r) => ({ ...r, dados: { ...r.dados, fotos: [] } }))));
+      return "semfotos";
+    } catch {
+      return "erro";
+    }
+  }
+}
+
+const novoId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+
+function progresso(d: Dados) {
+  const itens = [
+    d.local, d.dataHora, d.sigla, d.lider, d.colaborador,
+    Object.values(d.marcados).some(Boolean) || d.outros,
+    d.descricao, d.sucesso || d.naoRealizado, d.fotos.length > 0,
+    d.assTecnico, d.assColaborador,
+  ];
+  return Math.round((itens.filter(Boolean).length / itens.length) * 100);
+}
+
+function statusTxt(d: Dados) {
+  return d.sucesso ? "Sucesso" : d.naoRealizado ? "Não realizado" : "Em andamento";
+}
 
 function agora() {
   const d = new Date();
@@ -155,51 +200,88 @@ function agora() {
 
 function Ficha() {
   const [d, setD] = useState<Dados>(vazio);
+  const [lista, setLista] = useState<Registro[]>([]);
+  const [atualId, setAtualId] = useState<string | null>(null);
   const [carregado, setCarregado] = useState(false);
   const [aviso, setAviso] = useState("");
 
   useEffect(() => {
+    let l = lerHist();
     try {
       const raw = localStorage.getItem(CHAVE);
       if (raw) {
-        const salvo = JSON.parse(raw) as Dados;
-        nextId = Math.max(nextId, ...salvo.linhas.map((l) => l.id + 1));
-        setD({ ...vazio(), ...salvo });
+        const salvo = { ...vazio(), ...(JSON.parse(raw) as Dados) };
+        l = [{ id: novoId(), atualizado: Date.now(), dados: salvo }, ...l];
+        gravarHist(l);
+        localStorage.removeItem(CHAVE);
       }
     } catch {
       /* rascunho inválido */
     }
+    setLista(l);
     setCarregado(true);
   }, []);
 
   useEffect(() => {
-    if (!carregado) return;
+    if (!carregado || !atualId) return;
     const t = setTimeout(() => {
-      try {
-        localStorage.setItem(CHAVE, JSON.stringify(d));
-        setAviso("Rascunho salvo no aparelho");
-      } catch {
-        try {
-          localStorage.setItem(CHAVE, JSON.stringify({ ...d, fotos: [] }));
-          setAviso("Rascunho salvo (fotos não cabem no rascunho)");
-        } catch {
-          setAviso("");
-        }
-      }
+      setLista((prev) => {
+        const reg = { id: atualId, atualizado: Date.now(), dados: d };
+        const nova = [reg, ...prev.filter((r) => r.id !== atualId)];
+        const r = gravarHist(nova);
+        const hora = new Date().toLocaleTimeString("pt-BR");
+        setAviso(r === "ok" ? `Salvo no aparelho · ${hora}` : r === "semfotos" ? `Salvo sem fotos (memória cheia) · ${hora}` : "Não foi possível salvar");
+        return nova;
+      });
     }, 500);
     return () => clearTimeout(t);
-  }, [d, carregado]);
+  }, [d, carregado, atualId]);
+
+  const abrir = (dados: Dados, id: string) => {
+    nextId = Math.max(nextId, ...dados.linhas.map((l) => l.id + 1));
+    setD({ ...vazio(), ...dados });
+    setAtualId(id);
+    setAviso("");
+    window.scrollTo({ top: 0 });
+  };
 
   const set = <K extends keyof Dados>(k: K) => (v: Dados[K]) => setD((p) => ({ ...p, [k]: v }));
   const marcados = d.marcados;
   const toggle = (nome: string) => (v: boolean) =>
     setD((p) => ({ ...p, marcados: { ...p.marcados, [nome]: v } }));
 
-  const novaFicha = () => {
-    if (!window.confirm("Limpar toda a ficha e começar uma nova? Isso não pode ser desfeito.")) return;
-    localStorage.removeItem(CHAVE);
-    setD(vazio());
-    window.scrollTo({ top: 0 });
+  const novaFicha = () => abrir(vazio(), novoId());
+
+  const duplicar = (r: Registro) =>
+    abrir({ ...vazio(), local: r.dados.local, sigla: r.dados.sigla, lider: r.dados.lider, colaborador: r.dados.colaborador }, novoId());
+
+  const excluir = (id: string) => {
+    if (!window.confirm("Excluir esta ficha do histórico? Isso não pode ser desfeito.")) return;
+    const nova = lista.filter((r) => r.id !== id);
+    gravarHist(nova);
+    setLista(nova);
+  };
+
+  const exportar = () => {
+    const blob = new Blob([JSON.stringify(lista)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `backup-fichas-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+  };
+
+  const importar = async (f: File | undefined) => {
+    if (!f) return;
+    try {
+      const vind = JSON.parse(await f.text()) as Registro[];
+      const ids = new Set(lista.map((r) => r.id));
+      const nova = [...lista, ...vind.filter((r) => r.id && r.dados && !ids.has(r.id))].sort((a, b) => b.atualizado - a.atualizado);
+      gravarHist(nova);
+      setLista(nova);
+      window.alert(`${nova.length - lista.length} ficha(s) importada(s).`);
+    } catch {
+      window.alert("Arquivo de backup inválido.");
+    }
   };
 
   const compartilhar = async () => {
@@ -221,36 +303,98 @@ function Ficha() {
     window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`, "_blank");
   };
 
-  return (
-    <div className="min-h-screen bg-neutral-200 py-6 print:bg-white print:py-0">
-      <div className="no-print mx-auto mb-4 flex max-w-[820px] items-center justify-between gap-3 px-4">
-        <div>
-          <p className="text-[13px] text-neutral-700">
-            Toque nos campos para preencher, marque os serviços, anexe fotos e assine.
-          </p>
-          {aviso && <p className="text-[11px] text-green-700">{aviso}</p>}
+  if (!atualId) {
+    return (
+      <div className="min-h-screen bg-neutral-100 px-4 py-6">
+        <div className="mx-auto max-w-[720px] space-y-5">
+          <img src={cabecalho.url} alt="Grupo Águia Power" className="w-full rounded-lg border border-neutral-300 bg-white" />
+          <div className="rounded-xl bg-[#14213d] p-5 text-white">
+            <p className="text-[12px] font-semibold uppercase tracking-wide opacity-80">Funciona offline · salvo no aparelho</p>
+            <h1 className="mt-1 text-[22px] font-bold">Fichas de Check-List</h1>
+            <button type="button" onClick={novaFicha} className="mt-4 w-full rounded-lg bg-white px-4 py-3 text-[15px] font-bold text-[#14213d]">
+              + Nova ficha
+            </button>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <h2 className="text-[15px] font-bold">Histórico ({lista.length})</h2>
+            <div className="flex gap-2">
+              <button type="button" onClick={exportar} className="rounded-md border border-neutral-400 bg-white px-3 py-1.5 text-[12px] font-semibold">
+                Exportar backup
+              </button>
+              <label className="cursor-pointer rounded-md border border-neutral-400 bg-white px-3 py-1.5 text-[12px] font-semibold">
+                Importar
+                <input type="file" accept="application/json" className="hidden" onChange={(e) => void importar(e.target.files?.[0])} />
+              </label>
+            </div>
+          </div>
+
+          {lista.length === 0 && (
+            <p className="rounded-lg border border-dashed border-neutral-400 p-6 text-center text-[13px] text-neutral-600">
+              Nenhuma ficha salva ainda. Toque em "Nova ficha" para começar.
+            </p>
+          )}
+
+          <ul className="space-y-3">
+            {lista.map((r) => (
+              <li key={r.id} className="rounded-xl border border-neutral-300 bg-white p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="truncate text-[15px] font-bold">{r.dados.local || "Sem local"}</p>
+                    <p className="text-[12px] text-neutral-600">
+                      {r.dados.dataHora || new Date(r.atualizado).toLocaleString("pt-BR")} · {r.dados.lider || "Sem líder"} · {r.dados.fotos.length} foto(s)
+                    </p>
+                  </div>
+                  <span className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-bold ${r.dados.sucesso ? "bg-green-100 text-green-800" : r.dados.naoRealizado ? "bg-red-100 text-red-800" : "bg-amber-100 text-amber-800"}`}>
+                    {statusTxt(r.dados)}
+                  </span>
+                </div>
+                <div className="mt-3 h-1.5 rounded-full bg-neutral-200">
+                  <div className="h-1.5 rounded-full bg-[#14213d]" style={{ width: `${progresso(r.dados)}%` }} />
+                </div>
+                <div className="mt-3 grid grid-cols-3 gap-2">
+                  <button type="button" onClick={() => abrir(r.dados, r.id)} className="rounded-md bg-[#14213d] py-2 text-[12px] font-semibold text-white">Reeditar</button>
+                  <button type="button" onClick={() => duplicar(r)} className="rounded-md border border-neutral-400 py-2 text-[12px] font-semibold">Duplicar</button>
+                  <button type="button" onClick={() => excluir(r.id)} className="rounded-md border border-red-300 py-2 text-[12px] font-semibold text-red-700">Excluir</button>
+                </div>
+              </li>
+            ))}
+          </ul>
         </div>
-        <div className="flex flex-wrap justify-end gap-2">
-          <button
-            type="button"
-            onClick={novaFicha}
-            className="rounded-md border border-neutral-900 bg-white px-3 py-2 text-[13px] font-semibold"
-          >
+      </div>
+    );
+  }
+
+  const pct = progresso(d);
+
+  return (
+    <div className="min-h-screen bg-neutral-200 pb-24 print:bg-white print:pb-0">
+      <div className="no-print sticky top-0 z-20 mb-4 border-b border-neutral-300 bg-white px-4 py-2 shadow-sm">
+        <div className="mx-auto flex max-w-[820px] items-center gap-3">
+          <button type="button" onClick={() => setAtualId(null)} className="shrink-0 rounded-md border border-neutral-400 px-3 py-1.5 text-[13px] font-semibold" aria-label="Voltar ao histórico">
+            ← Fichas
+          </button>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-[14px] font-bold">{d.local || "Nova ficha"}</p>
+            <p className="truncate text-[11px] text-green-700">{aviso ? `● ${aviso}` : "Toque nos campos para preencher"}</p>
+          </div>
+          <span className="shrink-0 text-[13px] font-bold">{pct}%</span>
+        </div>
+        <div className="mx-auto mt-2 h-1.5 max-w-[820px] rounded-full bg-neutral-200">
+          <div className="h-1.5 rounded-full bg-green-600 transition-all" style={{ width: `${pct}%` }} />
+        </div>
+      </div>
+
+      <div className="no-print fixed inset-x-0 bottom-0 z-20 border-t border-neutral-300 bg-white px-4 py-3">
+        <div className="mx-auto grid max-w-[820px] grid-cols-3 gap-2">
+          <button type="button" onClick={novaFicha} className="rounded-md border border-neutral-900 bg-white py-2.5 text-[13px] font-semibold">
             Nova Ficha
           </button>
-          <button
-            type="button"
-            onClick={() => void compartilhar()}
-            className="rounded-md bg-green-700 px-3 py-2 text-[13px] font-semibold text-white"
-          >
+          <button type="button" onClick={() => void compartilhar()} className="rounded-md bg-green-700 py-2.5 text-[13px] font-semibold text-white">
             WhatsApp
           </button>
-          <button
-            type="button"
-            onClick={() => window.print()}
-            className="rounded-md bg-neutral-900 px-3 py-2 text-[13px] font-semibold text-white"
-          >
-            Imprimir / Salvar PDF
+          <button type="button" onClick={() => window.print()} className="rounded-md bg-neutral-900 py-2.5 text-[13px] font-semibold text-white">
+            Imprimir / PDF
           </button>
         </div>
       </div>
