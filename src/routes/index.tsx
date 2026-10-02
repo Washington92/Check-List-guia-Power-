@@ -324,7 +324,7 @@ function Ficha() {
         <div className="mx-auto max-w-[720px] space-y-5">
           <img src={cabecalho.url} alt="Grupo Águia Power" className="w-full rounded-lg border border-neutral-300 bg-white" />
           <div className="rounded-xl bg-[#14213d] p-5 text-white">
-            <p className="text-[12px] font-semibold uppercase tracking-wide opacity-80">Funciona offline · salvo no aparelho</p>
+            <p className="text-[12px] font-semibold uppercase tracking-wide opacity-80">Salvo no aparelho · instale na tela inicial</p>
             <h1 className="mt-1 text-[22px] font-bold">Fichas de Check-List</h1>
             <button type="button" onClick={novaFicha} className="mt-4 w-full rounded-lg bg-white px-4 py-3 text-[15px] font-bold text-[#14213d]">
               + Nova ficha
