@@ -7,6 +7,7 @@ export interface Foto {
 }
 
 let nextFotoId = 1;
+export const MAX_FOTOS = 4;
 
 // Reduz a foto antes de guardar, para caber no rascunho do aparelho
 async function comprimirFoto(file: File, maxLado = 1100, qualidade = 0.62): Promise<string> {
@@ -56,7 +57,7 @@ export function FotosEditor({
     setCarregando(true);
     try {
       const novas: Foto[] = [];
-      for (const file of Array.from(files)) {
+      for (const file of Array.from(files).slice(0, Math.max(0, MAX_FOTOS - fotos.length))) {
         if (!file.type.startsWith("image/")) continue;
         const src = await comprimirFoto(file);
         novas.push({ id: nextFotoId++, src, legenda: "" });
@@ -101,16 +102,15 @@ export function FotosEditor({
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
-          className="rounded border border-black bg-neutral-100 px-3 py-1.5 text-[12px] font-semibold"
+          disabled={fotos.length >= MAX_FOTOS}
+          className="rounded border border-black bg-neutral-100 px-3 py-1.5 text-[12px] font-semibold disabled:opacity-40"
         >
           + Adicionar / Tirar foto
         </button>
         <span className="text-[11px] text-neutral-600">
           {carregando
             ? "Preparando fotos..."
-            : fotos.length > 0
-              ? `${fotos.length} foto(s) anexada(s)`
-              : "Nenhuma foto anexada"}
+            : `${fotos.length} de ${MAX_FOTOS} fotos${fotos.length >= MAX_FOTOS ? " (limite atingido)" : fotos.length < 3 ? " — mínimo 3" : ""}`}
         </span>
       </div>
 

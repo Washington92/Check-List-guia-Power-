@@ -146,6 +146,34 @@ const vazio = (): Dados => ({
 });
 
 const CHAVE = "ficha-checklist-rascunho";
+const HIST = "ficha-checklist-historico";
+
+interface ItemHist { quando: string; dados: Dados }
+
+function lerHist(): ItemHist[] {
+  try { return JSON.parse(localStorage.getItem(HIST) || "[]"); } catch { return []; }
+}
+
+function guardarHist(dados: Dados) {
+  if (!dados.local && !dados.descricao && !Object.values(dados.marcados).some(Boolean)) return;
+  const lista = [{ quando: agora(), dados: { ...dados, fotos: [] } }, ...lerHist()].slice(0, 15);
+  try { localStorage.setItem(HIST, JSON.stringify(lista)); } catch { /* sem espaço */ }
+}
+
+function pendencias(d: Dados) {
+  const f: string[] = [];
+  if (!d.local.trim()) f.push("Local");
+  if (!d.sucesso && !d.naoRealizado) f.push("Status (sucesso / não realizado)");
+  if (!d.assTecnico) f.push("Assinatura do técnico");
+  if (!d.assColaborador) f.push("Assinatura do colaborador");
+  return f;
+}
+
+function confirmarPendencias(d: Dados) {
+  const f = pendencias(d);
+  if (f.length === 0) return true;
+  return window.confirm(`Faltam itens na ficha:\n\n• ${f.join("\n• ")}\n\nContinuar mesmo assim?`);
+}
 const HIST = "fichas-historico";
 
 interface Registro {
@@ -284,7 +312,17 @@ function Ficha() {
     }
   };
 
+  const [verHist, setVerHist] = useState(false);
+  const abrirHist = (item: ItemHist) => {
+    if (!window.confirm(`Abrir a ficha de ${item.quando}? A ficha atual será guardada no histórico.`)) return;
+    guardarHist(d);
+    setD({ ...vazio(), ...item.dados });
+    setVerHist(false);
+    window.scrollTo({ top: 0 });
+  };
+
   const compartilhar = async () => {
+    if (!confirmarPendencias(d)) return;
     const servicos = SERVICOS.filter((s) => d.marcados[s]);
     if (d.outros && d.outrosTexto) servicos.push(`OUTROS: ${d.outrosTexto}`);
     const texto = [
@@ -393,11 +431,29 @@ function Ficha() {
           <button type="button" onClick={() => void compartilhar()} className="rounded-md bg-green-700 py-2.5 text-[13px] font-semibold text-white">
             WhatsApp
           </button>
-          <button type="button" onClick={() => window.print()} className="rounded-md bg-neutral-900 py-2.5 text-[13px] font-semibold text-white">
+          <button type="button" onClick={() => confirmarPendencias(d) && window.print()} className="rounded-md bg-neutral-900 py-2.5 text-[13px] font-semibold text-white">
             Imprimir / PDF
           </button>
         </div>
       </div>
+
+      {verHist && (
+        <div className="no-print mx-auto mb-4 max-w-[820px] rounded-md border border-neutral-900 bg-white p-3">
+          <p className="mb-2 text-[13px] font-bold">Últimas fichas (sem fotos)</p>
+          {lerHist().length === 0 ? (
+            <p className="text-[12px] text-neutral-600">Nenhuma ficha guardada ainda. Ao tocar em "Nova Ficha", a atual vai para cá.</p>
+          ) : (
+            <ul className="divide-y divide-neutral-200">
+              {lerHist().map((h, i) => (
+                <li key={i} className="flex items-center justify-between gap-2 py-1.5 text-[12px]">
+                  <span>{h.quando} — {h.dados.local || "Sem local"}</span>
+                  <button type="button" onClick={() => abrirHist(h)} className="rounded border border-black px-2 py-0.5 text-[11px]">Abrir</button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
 
       <div className="ficha mx-auto max-w-[820px] border-2 border-black bg-white text-black print:max-w-none print:border">
         <img src={cabecalho.url} alt="Grupo Águia Power" className="w-full" />
