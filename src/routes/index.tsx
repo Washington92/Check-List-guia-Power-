@@ -146,6 +146,20 @@ const vazio = (): Dados => ({
 });
 
 const CHAVE = "ficha-checklist-rascunho";
+function pendencias(d: Dados) {
+  const f: string[] = [];
+  if (!d.local.trim()) f.push("Local");
+  if (!d.sucesso && !d.naoRealizado) f.push("Status (sucesso / não realizado)");
+  if (!d.assTecnico) f.push("Assinatura do técnico");
+  if (!d.assColaborador) f.push("Assinatura do colaborador");
+  return f;
+}
+
+function confirmarPendencias(d: Dados) {
+  const f = pendencias(d);
+  if (f.length === 0) return true;
+  return window.confirm(`Faltam itens na ficha:\n\n• ${f.join("\n• ")}\n\nContinuar mesmo assim?`);
+}
 const HIST = "fichas-historico";
 
 interface Registro {
@@ -285,6 +299,7 @@ function Ficha() {
   };
 
   const compartilhar = async () => {
+    if (!confirmarPendencias(d)) return;
     const servicos = SERVICOS.filter((s) => d.marcados[s]);
     if (d.outros && d.outrosTexto) servicos.push(`OUTROS: ${d.outrosTexto}`);
     const texto = [
@@ -309,7 +324,7 @@ function Ficha() {
         <div className="mx-auto max-w-[720px] space-y-5">
           <img src={cabecalho.url} alt="Grupo Águia Power" className="w-full rounded-lg border border-neutral-300 bg-white" />
           <div className="rounded-xl bg-[#14213d] p-5 text-white">
-            <p className="text-[12px] font-semibold uppercase tracking-wide opacity-80">Funciona offline · salvo no aparelho</p>
+            <p className="text-[12px] font-semibold uppercase tracking-wide opacity-80">Salvo no aparelho · instale na tela inicial</p>
             <h1 className="mt-1 text-[22px] font-bold">Fichas de Check-List</h1>
             <button type="button" onClick={novaFicha} className="mt-4 w-full rounded-lg bg-white px-4 py-3 text-[15px] font-bold text-[#14213d]">
               + Nova ficha
@@ -393,7 +408,7 @@ function Ficha() {
           <button type="button" onClick={() => void compartilhar()} className="rounded-md bg-green-700 py-2.5 text-[13px] font-semibold text-white">
             WhatsApp
           </button>
-          <button type="button" onClick={() => window.print()} className="rounded-md bg-neutral-900 py-2.5 text-[13px] font-semibold text-white">
+          <button type="button" onClick={() => confirmarPendencias(d) && window.print()} className="rounded-md bg-neutral-900 py-2.5 text-[13px] font-semibold text-white">
             Imprimir / PDF
           </button>
         </div>
