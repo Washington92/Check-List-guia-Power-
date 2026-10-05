@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { FotosEditor, FotosImpressao, type Foto } from "@/components/FotosServico";
-import cabecalho from "@/assets/cabecalho.png.asset.json";
+import brasao from "@/assets/brasao.png";
 import { SignaturePad } from "@/components/SignaturePad";
 
 export const Route = createFileRoute("/")({
@@ -86,6 +86,37 @@ function Caixa({
   );
 }
 
+function StatusBtn({
+  cor,
+  label,
+  checked,
+  onClick,
+}: {
+  cor: "verde" | "vermelho";
+  label: string;
+  checked: boolean;
+  onClick: () => void;
+}) {
+  const ativo =
+    cor === "verde"
+      ? "border-[#16a34a] bg-[#16a34a] text-white"
+      : "border-[#dc2626] bg-[#dc2626] text-white";
+  const inativo = cor === "verde" ? "border-[#16a34a] text-[#15803d]" : "border-[#dc2626] text-[#b91c1c]";
+  return (
+    <button
+      type="button"
+      aria-pressed={checked}
+      onClick={onClick}
+      className={`btn-ui status-btn flex items-center gap-2 rounded-xl border-2 px-3 py-1.5 text-[12px] font-bold uppercase transition-all duration-200 ${checked ? ativo : inativo}`}
+    >
+      <span className="btn-icon flex h-5 w-5 items-center justify-center rounded-md border-2 border-current text-[12px] leading-none">
+        {checked ? "X" : ""}
+      </span>
+      {label}
+    </button>
+  );
+}
+
 interface MaterialRow {
   id: number;
   especificacao: string;
@@ -159,6 +190,15 @@ function confirmarPendencias(d: Dados) {
   const f = pendencias(d);
   if (f.length === 0) return true;
   return window.confirm(`Faltam itens na ficha:\n\n• ${f.join("\n• ")}\n\nContinuar mesmo assim?`);
+}
+
+function imprimir(d: Dados) {
+  if (!confirmarPendencias(d)) return;
+  const antigo = document.title;
+  const data = (d.dataHora.split(" ")[0] || new Date().toLocaleDateString("pt-BR")).replace(/\//g, "-");
+  document.title = `CheckList - Águia Power - ${d.local.trim() || "Unidade"} - ${data}`;
+  window.print();
+  setTimeout(() => (document.title = antigo), 1000);
 }
 const HIST = "fichas-historico";
 
@@ -434,14 +474,16 @@ function Ficha() {
           <button type="button" onClick={() => void compartilhar()} className="rounded-md bg-green-700 py-2.5 text-[13px] font-semibold text-white">
             WhatsApp
           </button>
-          <button type="button" onClick={() => confirmarPendencias(d) && window.print()} className="rounded-md bg-neutral-900 py-2.5 text-[13px] font-semibold text-white">
+          <button type="button" onClick={() => imprimir(d)} className="rounded-md bg-neutral-900 py-2.5 text-[13px] font-semibold text-white">
             Imprimir / PDF
           </button>
         </div>
       </div>
 
       <div className="ficha mx-auto max-w-[820px] border-2 border-black bg-white text-black print:max-w-none print:border">
-        <img src={cabecalho.url} alt="Grupo Águia Power" className="w-full" />
+        <div className="flex justify-center bg-white py-1">
+          <img src={brasao} alt="Grupo Águia Power" className="h-[84px] w-auto object-contain" />
+        </div>
 
         <div className="border-y-2 border-black bg-[#c9daf8] py-0.5 text-center text-[12px] font-bold uppercase">
           GCR Sistemas de Seguranca / Aguia Power CNPJ: 44.683.082/0001-91
@@ -519,14 +561,18 @@ function Ficha() {
         </div>
 
         <div className="flex flex-wrap items-center justify-around gap-3 border-y-2 border-black px-3 py-2">
-          <div className="flex items-center gap-2">
-            <span className="text-[12px] font-bold uppercase">Serviço realizado com sucesso?</span>
-            <Caixa checked={d.sucesso} onChange={(v) => setD((p) => ({ ...p, sucesso: v, naoRealizado: v ? false : p.naoRealizado }))} />
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-[12px] font-bold uppercase">Serviço não realizado</span>
-            <Caixa checked={d.naoRealizado} onChange={(v) => setD((p) => ({ ...p, naoRealizado: v, sucesso: v ? false : p.sucesso }))} />
-          </div>
+          <StatusBtn
+            cor="verde"
+            label="Serviço realizado com sucesso"
+            checked={d.sucesso}
+            onClick={() => setD((p) => ({ ...p, sucesso: !p.sucesso, naoRealizado: false }))}
+          />
+          <StatusBtn
+            cor="vermelho"
+            label="Serviço não realizado"
+            checked={d.naoRealizado}
+            onClick={() => setD((p) => ({ ...p, naoRealizado: !p.naoRealizado, sucesso: false }))}
+          />
         </div>
 
         <div className="px-3 py-3">
@@ -572,7 +618,7 @@ function Ficha() {
       <VersoMateriais linhas={d.linhas} setLinhas={(f) => setD((p) => ({ ...p, linhas: f(p.linhas) }))} />
 
       {d.incluirFotos && (
-        <FotosImpressao fotos={d.fotos} cabecalhoUrl={cabecalho.url} local={d.local} dataHora={d.dataHora} />
+        <FotosImpressao fotos={d.fotos} cabecalhoUrl={brasao} local={d.local} dataHora={d.dataHora} />
       )}
     </div>
   );
@@ -593,71 +639,84 @@ function VersoMateriais({
       <div className="border-b border-black py-3 text-center font-serif text-[18px] font-bold uppercase">
         Lista de Materiais
       </div>
+      <p className="no-print px-3 pt-2 text-[11px] text-neutral-500">
+        A folha 2 da impressão espelha estas linhas — role para o lado no celular.
+      </p>
 
       <div className="overflow-x-auto">
-        <div className="min-w-[620px] font-serif">
-          <div className="grid grid-cols-[4rem_minmax(17rem,1fr)_8rem_8rem] border-b border-black text-[14px] font-bold uppercase leading-tight">
+        <div className="min-w-[640px] font-serif">
+          <div className="grid grid-cols-[3.5rem_minmax(15rem,1fr)_6.5rem_11rem] border-b border-black text-[14px] font-bold uppercase leading-tight print:grid-cols-[4rem_1fr_8rem_8rem]">
             <div className="border-r border-black px-2 py-2 text-center">Item</div>
             <div className="border-r border-black px-2 py-2">Especificação</div>
-            <div className="border-r border-black px-2 py-2 text-center">Unidade</div>
-            <div className="px-2 py-2 text-center">Quantidade</div>
+            <div className="border-r border-black px-2 py-2 text-center">Quantidade</div>
+            <div className="px-2 py-2 text-center">Unidade</div>
           </div>
 
           {linhas.map((linha, i) => (
             <div
               key={linha.id}
-              className="material-row grid grid-cols-[4rem_minmax(17rem,1fr)_8rem_8rem] border-b border-black text-[14px]"
+              className="material-row grid grid-cols-[3.5rem_minmax(15rem,1fr)_6.5rem_11rem] border-b border-black text-[14px] print:grid-cols-[4rem_1fr_8rem_8rem]"
             >
-              <div className="flex items-center justify-center border-r border-black px-2">
-                {i + 1}
-              </div>
-              <div className="border-r border-black">
+              <div className="flex items-center justify-center border-r border-black px-2">{i + 1}</div>
+              <div className="border-r border-black p-1 print:p-0">
                 <input
                   aria-label={`Especificação do item ${i + 1}`}
                   value={linha.especificacao}
+                  placeholder="Ex.: Cabo UTP cat. 6"
                   onChange={(e) => update(linha.id, { especificacao: e.target.value })}
-                  className="h-full w-full bg-transparent px-2 py-1.5 outline-none focus:bg-yellow-50 print:focus:bg-transparent"
+                  className="pill-input w-full rounded-full border border-neutral-300 bg-neutral-50 px-3 py-1 outline-none focus:border-[#0b1f5c] print:placeholder:text-transparent"
                 />
               </div>
-              <div className="border-r border-black">
-                <input
-                  aria-label={`Unidade do item ${i + 1}`}
-                  value={linha.unidade}
-                  onChange={(e) => update(linha.id, { unidade: e.target.value })}
-                  className="h-full w-full bg-transparent px-2 py-1.5 text-center outline-none focus:bg-yellow-50 print:focus:bg-transparent"
-                />
-              </div>
-              <div>
+              <div className="border-r border-black p-1 print:p-0">
                 <input
                   aria-label={`Quantidade do item ${i + 1}`}
                   value={linha.quantidade}
                   onChange={(e) => update(linha.id, { quantidade: e.target.value })}
                   inputMode="decimal"
-                  className="h-full w-full bg-transparent px-2 py-1.5 text-center outline-none focus:bg-yellow-50 print:focus:bg-transparent"
+                  className="pill-input w-full rounded-full border border-neutral-300 bg-neutral-50 px-2 py-1 text-center outline-none focus:border-[#0b1f5c]"
                 />
+              </div>
+              <div className="flex items-center gap-1 p-1 print:justify-center print:p-0">
+                <span className="hidden print:inline">{linha.unidade}</span>
+                <div className="no-print flex flex-1 gap-0.5 rounded-full bg-neutral-100 p-0.5">
+                  {["UN", "M", "CX", "PCT"].map((u) => (
+                    <button
+                      key={u}
+                      type="button"
+                      onClick={() => update(linha.id, { unidade: linha.unidade === u ? "" : u })}
+                      className={`flex-1 rounded-full py-1 font-sans text-[10px] font-bold transition ${linha.unidade === u ? "bg-[#0b1f5c] text-white shadow" : "text-neutral-600"}`}
+                    >
+                      {u}
+                    </button>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  aria-label={`Remover item ${i + 1}`}
+                  onClick={() =>
+                    setLinhas((prev) => (prev.length > 1 ? prev.filter((l) => l.id !== linha.id) : [novaLinha()]))
+                  }
+                  className="no-print flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-red-50 font-sans text-[12px] font-bold text-red-600 transition active:scale-90"
+                >
+                  ✕
+                </button>
               </div>
             </div>
           ))}
         </div>
       </div>
 
-      <div className="no-print flex justify-end gap-2 px-3 py-2">
-          <button
-            type="button"
-            onClick={() => setLinhas((prev) => [...prev, novaLinha()])}
-            className="rounded border border-black bg-neutral-100 px-3 py-1 text-[12px] font-semibold"
-          >
-            + Adicionar linha
-          </button>
-          {linhas.length > 1 && (
-            <button
-              type="button"
-              onClick={() => setLinhas((prev) => prev.slice(0, -1))}
-              className="rounded border border-black px-3 py-1 text-[12px]"
-            >
-              Remover
-            </button>
-          )}
+      <div className="no-print flex items-center justify-between gap-2 px-3 py-2">
+        <span className="text-[11px] text-neutral-500">
+          {linhas.filter((l) => l.especificacao.trim()).length} de {linhas.length} linhas preenchidas
+        </span>
+        <button
+          type="button"
+          onClick={() => setLinhas((prev) => [...prev, novaLinha()])}
+          className="btn-ui rounded-xl border-2 border-[#0b1f5c] px-4 py-1.5 text-[12px] font-semibold text-[#0b1f5c]"
+        >
+          + Adicionar linha
+        </button>
       </div>
     </div>
   );

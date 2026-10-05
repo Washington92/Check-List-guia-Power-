@@ -204,3 +204,14 @@
   }
 }
 
+
+/* Botões estilo moderno: ícone desliza ao tocar */
+.btn-ui { transition: all .2s ease; }
+.btn-ui .btn-icon { transition: transform .2s ease; }
+.btn-ui:hover .btn-icon, .btn-ui:active .btn-icon { transform: translateX(3px); }
+.btn-ui:active { transform: scale(.97); }
+@media print {
+  .status-btn { border-radius: 0 !important; border-width: 0 !important; background: transparent !important; color: #000 !important; padding: 0 !important; }
+  .status-btn .btn-icon { width: 2.5rem; border: 1px solid #000; border-radius: 0; }
+  .pill-input { border: 0 !important; border-radius: 0 !important; background: transparent !important; }
+}
