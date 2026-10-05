@@ -8,3 +8,6 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- Signature fields use an inline canvas synchronized with saved image data, so signing does not interrupt the checklist.
+- Printing uses the dedicated A4 print stylesheet and is accessible from the checklist header and footer, so the action remains reachable on small screens.
