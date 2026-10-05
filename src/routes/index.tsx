@@ -465,7 +465,7 @@ function Ficha() {
           <button type="button" onClick={() => void compartilhar()} className="rounded-md bg-green-700 py-2.5 text-[13px] font-semibold text-white">
             WhatsApp
           </button>
-          <button type="button" onClick={() => confirmarPendencias(d) && window.print()} className="rounded-md bg-neutral-900 py-2.5 text-[13px] font-semibold text-white">
+          <button type="button" onClick={() => imprimir(d)} className="rounded-md bg-neutral-900 py-2.5 text-[13px] font-semibold text-white">
             Imprimir / PDF
           </button>
         </div>
@@ -609,7 +609,7 @@ function Ficha() {
       <VersoMateriais linhas={d.linhas} setLinhas={(f) => setD((p) => ({ ...p, linhas: f(p.linhas) }))} />
 
       {d.incluirFotos && (
-        <FotosImpressao fotos={d.fotos} cabecalhoUrl={cabecalho.url} local={d.local} dataHora={d.dataHora} />
+        <FotosImpressao fotos={d.fotos} cabecalhoUrl={brasao} local={d.local} dataHora={d.dataHora} />
       )}
     </div>
   );

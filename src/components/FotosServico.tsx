@@ -182,7 +182,7 @@ export function FotosImpressao({
 
   return (
     <div className="fotos mx-auto mt-6 hidden max-w-[820px] border-2 border-black bg-white text-black print:mt-0 print:block print:max-w-none print:border">
-      <img src={cabecalhoUrl} alt="Grupo Águia Power" className="w-full" />
+      <div className="flex justify-center py-1"><img src={cabecalhoUrl} alt="Grupo Águia Power" className="h-[70px] w-auto" /></div>
 
       <div className="border-y-2 border-black bg-neutral-200 py-1.5 text-center text-[16px] font-bold uppercase">
         Registro Fotografico do Atendimento
