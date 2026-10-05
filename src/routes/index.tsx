@@ -191,6 +191,15 @@ function confirmarPendencias(d: Dados) {
   if (f.length === 0) return true;
   return window.confirm(`Faltam itens na ficha:\n\n• ${f.join("\n• ")}\n\nContinuar mesmo assim?`);
 }
+
+function imprimir(d: Dados) {
+  if (!confirmarPendencias(d)) return;
+  const antigo = document.title;
+  const data = (d.dataHora.split(" ")[0] || new Date().toLocaleDateString("pt-BR")).replace(/\//g, "-");
+  document.title = `CheckList - Águia Power - ${d.local.trim() || "Unidade"} - ${data}`;
+  window.print();
+  setTimeout(() => (document.title = antigo), 1000);
+}
 const HIST = "fichas-historico";
 
 interface Registro {
