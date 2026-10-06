@@ -103,7 +103,7 @@ export function FotosEditor({
           type="button"
           onClick={() => inputRef.current?.click()}
           disabled={fotos.length >= MAX_FOTOS}
-          className="rounded border border-black bg-neutral-100 px-3 py-1.5 text-[12px] font-semibold disabled:opacity-40"
+          className="btn-ui rounded-xl bg-[#1d4ed8] px-3 py-1.5 text-[12px] font-bold text-white shadow-sm disabled:opacity-40"
         >
           + Adicionar / Tirar foto
         </button>
