@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { FotosEditor, FotosImpressao, type Foto } from "@/components/FotosServico";
 import brasao from "@/assets/brasao.png";
+import cabecalho from "@/assets/cabecalho.png.asset.json";
 import { SignaturePad } from "@/components/SignaturePad";
 
 export const Route = createFileRoute("/")({
@@ -487,7 +488,8 @@ function Ficha() {
 
       <div className="ficha mx-auto max-w-[820px] border-2 border-black bg-white text-black print:max-w-none print:border">
         <div className="flex justify-center bg-white py-1">
-          <img src={brasao} alt="Grupo Águia Power" className="h-[84px] w-auto object-contain" />
+          <img src={brasao} alt="Grupo Águia Power" className="h-[84px] w-auto object-contain print:hidden" />
+          <img src={cabecalho.url} alt="Grupo Águia Power" className="hidden h-[84px] w-auto object-contain print:block" />
         </div>
 
         <div className="border-y-2 border-black bg-[#c9daf8] py-0.5 text-center text-[12px] font-bold uppercase">
@@ -623,7 +625,7 @@ function Ficha() {
       <VersoMateriais linhas={d.linhas} setLinhas={(f) => setD((p) => ({ ...p, linhas: f(p.linhas) }))} />
 
       {d.incluirFotos && (
-        <FotosImpressao fotos={d.fotos} cabecalhoUrl={brasao} local={d.local} dataHora={d.dataHora} />
+        <FotosImpressao fotos={d.fotos} cabecalhoUrl={cabecalho.url} local={d.local} dataHora={d.dataHora} />
       )}
     </div>
   );
