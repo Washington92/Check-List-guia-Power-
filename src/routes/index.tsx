@@ -479,6 +479,12 @@ function Ficha() {
         </div>
       </div>
 
+      <div className="no-print mx-auto mb-3 flex max-w-[820px] justify-end">
+        <button type="button" onClick={() => imprimir(d)} className="btn-ui rounded-xl bg-[#1d4ed8] px-5 py-2.5 text-[13px] font-bold text-white shadow-md">
+          Imprimir / PDF
+        </button>
+      </div>
+
       <div className="ficha mx-auto max-w-[820px] border-2 border-black bg-white text-black print:max-w-none print:border">
         <div className="flex justify-center bg-white py-1">
           <img src={brasao} alt="Grupo Águia Power" className="h-[84px] w-auto object-contain" />
