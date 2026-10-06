@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { FotosEditor, FotosImpressao, type Foto } from "@/components/FotosServico";
 import brasao from "@/assets/brasao.png";
+import cabecalho from "@/assets/cabecalho.png.asset.json";
 import { SignaturePad } from "@/components/SignaturePad";
 
 export const Route = createFileRoute("/")({
@@ -624,7 +625,7 @@ function Ficha() {
       <VersoMateriais linhas={d.linhas} setLinhas={(f) => setD((p) => ({ ...p, linhas: f(p.linhas) }))} />
 
       {d.incluirFotos && (
-        <FotosImpressao fotos={d.fotos} cabecalhoUrl={brasao} local={d.local} dataHora={d.dataHora} />
+        <FotosImpressao fotos={d.fotos} cabecalhoUrl={cabecalho.url} local={d.local} dataHora={d.dataHora} />
       )}
     </div>
   );
