@@ -61,7 +61,7 @@ export function SignaturePad({
     <div className="flex flex-col">
       <span className="text-center text-[11px] font-bold uppercase tracking-wide">{label}</span>
       <div className="sig-area relative mt-2 h-24 w-full rounded-sm bg-white">
-        {value && <img src={value} alt="" className="print-only absolute inset-0 h-full w-full object-contain" />}
+        {value && <img src={value} alt="" className="hidden print:block absolute inset-0 h-full w-full object-contain" />}
         <canvas
           ref={ref}
           aria-label={`Assinar: ${label}`}

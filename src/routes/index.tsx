@@ -187,9 +187,8 @@ function pendencias(d: Dados) {
 }
 
 function confirmarPendencias(d: Dados) {
-  const f = pendencias(d);
-  if (f.length === 0) return true;
-  return window.confirm(`Faltam itens na ficha:\n\n• ${f.join("\n• ")}\n\nContinuar mesmo assim?`);
+  void d;
+  return true;
 }
 
 function imprimir(d: Dados) {
@@ -468,13 +467,13 @@ function Ficha() {
 
       <div className="no-print fixed inset-x-0 bottom-0 z-20 border-t border-neutral-300 bg-white px-4 py-3">
         <div className="mx-auto grid max-w-[820px] grid-cols-3 gap-2">
-          <button type="button" onClick={novaFicha} className="rounded-md border border-neutral-900 bg-white py-2.5 text-[13px] font-semibold">
+          <button type="button" onClick={novaFicha} className="btn-ui rounded-xl border-2 border-[#0b1f5c] bg-white py-2.5 text-[13px] font-bold text-[#0b1f5c] shadow-sm">
             Nova Ficha
           </button>
-          <button type="button" onClick={() => void compartilhar()} className="rounded-md bg-green-700 py-2.5 text-[13px] font-semibold text-white">
+          <button type="button" onClick={() => void compartilhar()} className="btn-ui rounded-xl bg-[#25D366] py-2.5 text-[13px] font-bold text-white shadow-md">
             WhatsApp
           </button>
-          <button type="button" onClick={() => imprimir(d)} className="rounded-md bg-neutral-900 py-2.5 text-[13px] font-semibold text-white">
+          <button type="button" onClick={() => imprimir(d)} className="btn-ui rounded-xl bg-[#1d4ed8] py-2.5 text-[13px] font-bold text-white shadow-md">
             Imprimir / PDF
           </button>
         </div>
@@ -506,7 +505,7 @@ function Ficha() {
               <button
                 type="button"
                 onClick={() => set("dataHora")(agora())}
-                className="no-print shrink-0 rounded border border-black bg-neutral-100 px-1.5 py-0.5 text-[10px] font-bold uppercase"
+                className="btn-ui no-print shrink-0 rounded-xl bg-[#1d4ed8] px-2.5 py-1 text-[10px] font-bold uppercase text-white shadow-sm"
               >
                 Agora
               </button>
@@ -713,7 +712,7 @@ function VersoMateriais({
         <button
           type="button"
           onClick={() => setLinhas((prev) => [...prev, novaLinha()])}
-          className="btn-ui rounded-xl border-2 border-[#0b1f5c] px-4 py-1.5 text-[12px] font-semibold text-[#0b1f5c]"
+          className="btn-ui rounded-xl bg-[#1d4ed8] px-4 py-1.5 text-[12px] font-bold text-white shadow-sm"
         >
           + Adicionar linha
         </button>
