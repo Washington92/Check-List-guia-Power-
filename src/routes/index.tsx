@@ -487,7 +487,8 @@ function Ficha() {
 
       <div className="ficha mx-auto max-w-[820px] border-2 border-black bg-white text-black print:max-w-none print:border">
         <div className="flex justify-center bg-white py-1">
-          <img src={brasao} alt="Grupo Águia Power" className="h-[84px] w-auto object-contain" />
+          <img src={brasao} alt="Grupo Águia Power" className="h-[84px] w-auto object-contain print:hidden" />
+          <img src={cabecalho.url} alt="Grupo Águia Power" className="hidden h-[84px] w-auto object-contain print:block" />
         </div>
 
         <div className="border-y-2 border-black bg-[#c9daf8] py-0.5 text-center text-[12px] font-bold uppercase">
