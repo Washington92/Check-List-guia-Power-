@@ -561,19 +561,19 @@ function Ficha() {
           <button type="button" onClick={novaFicha} className="btn-ui rounded-xl border-2 border-[#0b1f5c] bg-white py-2.5 text-[13px] font-bold text-[#0b1f5c] shadow-sm">
             Nova Ficha
           </button>
-          <button type="button" onClick={() => void compartilhar()} className="btn-ui rounded-xl bg-[#25D366] py-2.5 text-[13px] font-bold text-white shadow-md">
-            WhatsApp
-          </button>
+          {!d.entrada ? (
+            <button type="button" onClick={iniciarAtendimento} className="btn-ui rounded-xl bg-[#16a34a] py-2.5 text-[13px] font-bold text-white shadow-md">
+              ▶ Iniciar
+            </button>
+          ) : (
+            <button type="button" onClick={finalizarAtendimento} className="btn-ui rounded-xl bg-[#dc2626] py-2.5 text-[13px] font-bold text-white shadow-md">
+              {d.saida ? "↻ Reenviar" : "■ Finalizar"}
+            </button>
+          )}
           <button type="button" onClick={() => imprimir(d)} className="btn-ui rounded-xl bg-[#1d4ed8] py-2.5 text-[13px] font-bold text-white shadow-md">
             Imprimir / PDF
           </button>
         </div>
-      </div>
-
-      <div className="no-print mx-auto mb-3 flex max-w-[820px] justify-end">
-        <button type="button" onClick={() => imprimir(d)} className="btn-ui rounded-xl bg-[#1d4ed8] px-5 py-2.5 text-[13px] font-bold text-white shadow-md">
-          Imprimir / PDF
-        </button>
       </div>
 
       <div className="no-print mx-auto mb-4 max-w-[820px] rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
