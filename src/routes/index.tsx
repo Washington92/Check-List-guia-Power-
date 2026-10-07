@@ -475,7 +475,6 @@ function Ficha() {
               )}
             </div>
             <img src={brasao} alt="Grupo Águia Power" className="h-24 w-auto object-contain" />
-            <p className="mt-3 text-[18px] font-bold uppercase tracking-[0.14em] text-[#14213d]">Grupo Águia Power</p>
             <h1 className="text-[13px] font-medium text-slate-500">Fichas Técnicas</h1>
           </header>
 
