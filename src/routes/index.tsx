@@ -584,20 +584,13 @@ function Ficha() {
           </button>
         </div>
         {!d.entrada ? (
-          <button type="button" onClick={iniciarAtendimento} className="btn-ui mt-3 w-full rounded-xl bg-[#16a34a] py-3 text-[14px] font-bold text-white shadow-md">
-            ▶ Iniciar Atendimento
-          </button>
+          <p className="mt-3 text-[12px] text-slate-500">Toque em “Iniciar” na barra inferior para registrar a entrada.</p>
         ) : (
-          <>
-            <div className="mt-3 grid grid-cols-3 gap-2 text-center">
-              <div className="rounded-xl bg-slate-50 p-2"><p className="text-[10px] uppercase text-slate-500">Entrada</p><p className="text-[15px] font-bold">{hm(d.entrada)}</p></div>
-              <div className="rounded-xl bg-slate-50 p-2"><p className="text-[10px] uppercase text-slate-500">{d.saida ? "Saída" : "Status"}</p><p className={`text-[15px] font-bold ${d.saida ? "" : "text-[#16a34a]"}`}>{d.saida ? hm(d.saida) : "● Em atendimento"}</p></div>
-              <div className="rounded-xl bg-slate-50 p-2"><p className="text-[10px] uppercase text-slate-500">{d.saida ? "Duração" : "Tempo decorrido"}</p><p className="text-[15px] font-bold tabular-nums">{d.saida ? duracao(d.saida - d.entrada) : cronometro(agoraMs - d.entrada)}</p></div>
-            </div>
-            <button type="button" onClick={finalizarAtendimento} className="btn-ui mt-3 w-full rounded-xl bg-[#dc2626] py-3 text-[14px] font-bold text-white shadow-md">
-              {d.saida ? "↻ Reenviar Conclusão · WhatsApp + PDF" : "■ Finalizar Atendimento · WhatsApp + PDF"}
-            </button>
-          </>
+          <div className="mt-3 grid grid-cols-3 gap-2 text-center">
+            <div className="rounded-xl bg-slate-50 p-2"><p className="text-[10px] uppercase text-slate-500">Entrada</p><p className="text-[15px] font-bold">{hm(d.entrada)}</p></div>
+            <div className="rounded-xl bg-slate-50 p-2"><p className="text-[10px] uppercase text-slate-500">{d.saida ? "Saída" : "Status"}</p><p className={`text-[15px] font-bold ${d.saida ? "" : "text-[#16a34a]"}`}>{d.saida ? hm(d.saida) : "● Em atendimento"}</p></div>
+            <div className="rounded-xl bg-slate-50 p-2"><p className="text-[10px] uppercase text-slate-500">{d.saida ? "Duração" : "Tempo decorrido"}</p><p className="text-[15px] font-bold tabular-nums">{d.saida ? duracao(d.saida - d.entrada) : cronometro(agoraMs - d.entrada)}</p></div>
+          </div>
         )}
       </div>
 
