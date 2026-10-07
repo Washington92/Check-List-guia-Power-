@@ -152,6 +152,8 @@ interface Dados {
   linhas: MaterialRow[];
   fotos: Foto[];
   incluirFotos: boolean;
+  entrada?: number | null;
+  saida?: number | null;
 }
 
 const vazio = (): Dados => ({
@@ -246,6 +248,20 @@ function statusTxt(d: Dados) {
   return d.sucesso ? "Sucesso" : d.naoRealizado ? "Não realizado" : "Em andamento";
 }
 
+const CHAVE_TEC = "ficha-tecnico-nome";
+function hm(t: number) {
+  return new Date(t).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+}
+function duracao(ms: number) {
+  const m = Math.max(0, Math.floor(ms / 60000));
+  return `${Math.floor(m / 60)}h ${String(m % 60).padStart(2, "0")}min`;
+}
+function cronometro(ms: number) {
+  const s = Math.max(0, Math.floor(ms / 1000));
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${p(Math.floor(s / 3600))}:${p(Math.floor((s % 3600) / 60))}:${p(s % 60)}`;
+}
+
 function agora() {
   const d = new Date();
   const p = (n: number) => String(n).padStart(2, "0");
@@ -260,6 +276,21 @@ function Ficha() {
   const [aviso, setAviso] = useState("");
   const [busca, setBusca] = useState("");
   const [opcoes, setOpcoes] = useState(false);
+  const [tecnico, setTecnico] = useState("");
+  const [agoraMs, setAgoraMs] = useState(0);
+  useEffect(() => {
+    setTecnico(localStorage.getItem(CHAVE_TEC) || "");
+  }, []);
+  useEffect(() => {
+    if (!d.entrada || d.saida) return;
+    setAgoraMs(Date.now());
+    const i = setInterval(() => setAgoraMs(Date.now()), 1000);
+    return () => clearInterval(i);
+  }, [d.entrada, d.saida]);
+  const salvarTecnico = (n: string) => {
+    localStorage.setItem(CHAVE_TEC, n);
+    setTecnico(n);
+  };
 
   useEffect(() => {
     let l = lerHist();
@@ -360,6 +391,66 @@ function Ficha() {
     window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`, "_blank");
   };
 
+  const iniciarAtendimento = () => {
+    let nome = tecnico;
+    if (!nome) {
+      nome = (window.prompt("Nome do técnico responsável:") || "").trim();
+      if (!nome) return;
+      salvarTecnico(nome);
+    }
+    const t = Date.now();
+    setD((p) => ({ ...p, entrada: t, saida: null }));
+    const dt = new Date(t);
+    const texto = [
+      "📍 *TÉCNICO NO LOCAL · ATENDIMENTO INICIADO*",
+      "",
+      `🏢 Unidade: ${d.local || "-"}`,
+      `👤 Técnico: ${nome}`,
+      `📅 Data: ${dt.toLocaleDateString("pt-BR")}`,
+      `⏰ Entrada: ${hm(t)}`,
+    ].join("\n");
+    window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`, "_blank");
+  };
+
+  const finalizarAtendimento = () => {
+    const ent = d.entrada ?? Date.now();
+    const sai = Date.now();
+    setD((p) => ({ ...p, saida: sai }));
+    const feitos = SERVICOS.filter((s) => d.marcados[s]);
+    if (d.outros && d.outrosTexto) feitos.push(`OUTROS: ${d.outrosTexto}`);
+    const mats = d.linhas.filter((l) => l.especificacao.trim());
+    const status = d.sucesso
+      ? "✅ Realizado com sucesso"
+      : d.naoRealizado
+        ? `❌ Não realizado — Motivo: ${[d.motivo, d.motivoDetalhe].filter(Boolean).join(" ") || "-"}`
+        : "Não informado";
+    const texto = [
+      "✅ *ATENDIMENTO CONCLUÍDO*",
+      "",
+      `🏢 Unidade: ${d.local || "-"}`,
+      `👤 Técnico: ${tecnico || "-"}`,
+      `📅 Data: ${new Date(ent).toLocaleDateString("pt-BR")}`,
+      `⏰ Entrada: ${hm(ent)} · Saída: ${hm(sai)}`,
+      `⏱ Duração: ${duracao(sai - ent)}`,
+      "",
+      "*🛠 Serviços realizados:*",
+      ...(feitos.length ? feitos.map((s) => `• ${s}`) : ["• Nenhum serviço marcado"]),
+      d.descricao ? `\n📝 Descrição: ${d.descricao}` : "",
+      `\n📊 Status: ${status}`,
+      mats.length
+        ? `\n📦 Materiais:\n${mats.map((m) => `• ${m.especificacao}${m.quantidade ? ` — ${m.quantidade}` : ""}${m.unidade ? ` ${m.unidade}` : ""}`).join("\n")}`
+        : "\n📦 Materiais: Nenhum material utilizado",
+      `📸 Fotos: ${d.fotos.length ? `${d.fotos.length} foto(s) anexada(s)` : "Nenhuma foto anexada"}`,
+      `✍ Assinaturas: Técnico ${d.assTecnico ? "✔" : "pendente"} · Colaborador ${d.assColaborador ? "✔" : "pendente"}`,
+      "",
+      "A ficha completa em PDF segue em anexo.",
+    ]
+      .filter((x) => x !== "")
+      .join("\n");
+    window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`, "_blank");
+    setTimeout(() => imprimir(d), 600);
+  };
+
   if (!atualId) {
     const q = busca.trim().toLowerCase();
     const filtrada = q
@@ -368,20 +459,13 @@ function Ficha() {
     return (
       <div className="min-h-screen bg-slate-50 px-5 pb-10 pt-8 text-slate-900">
         <div className="mx-auto max-w-[640px]">
-          <header className="flex items-start justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <img src="/icon-192.png" alt="" className="h-11 w-11 rounded-2xl shadow-sm" />
-              <div>
-                <p className="text-[12px] font-medium text-slate-500">Águia Power</p>
-                <h1 className="text-[24px] font-semibold leading-tight tracking-tight">Fichas Técnicas</h1>
-              </div>
-            </div>
-            <div className="relative">
+          <header className="relative flex flex-col items-center text-center">
+            <div className="absolute right-0 top-0">
               <button type="button" onClick={() => setOpcoes((v) => !v)} className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[12px] font-medium text-slate-600 shadow-sm">
                 Opções
               </button>
               {opcoes && (
-                <div className="absolute right-0 z-10 mt-2 w-44 overflow-hidden rounded-2xl border border-slate-200 bg-white text-[13px] shadow-lg">
+                <div className="absolute right-0 z-10 mt-2 w-44 overflow-hidden rounded-2xl border border-slate-200 bg-white text-left text-[13px] shadow-lg">
                   <button type="button" onClick={() => { setOpcoes(false); exportar(); }} className="block w-full px-4 py-3 text-left hover:bg-slate-50">Exportar backup</button>
                   <label className="block cursor-pointer border-t border-slate-100 px-4 py-3 hover:bg-slate-50">
                     Importar backup
@@ -390,19 +474,26 @@ function Ficha() {
                 </div>
               )}
             </div>
+            <img src={brasao} alt="Grupo Águia Power" className="h-24 w-auto object-contain" />
+            <p className="mt-3 text-[18px] font-bold uppercase tracking-[0.14em] text-[#14213d]">Grupo Águia Power</p>
+            <h1 className="text-[13px] font-medium text-slate-500">Fichas Técnicas</h1>
           </header>
-          <p className="mt-2 text-[13px] text-slate-500">{lista.length} {lista.length === 1 ? "ficha salva" : "fichas salvas"} no aparelho</p>
 
           <button type="button" onClick={novaFicha} className="mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-[#14213d] px-4 py-4 text-[15px] font-semibold text-white shadow-md transition active:scale-[0.99]">
-            <span className="text-[20px] leading-none">+</span> Iniciar nova ficha
+            <span className="text-[20px] leading-none">+</span> Iniciar Nova Ficha
           </button>
 
           <div className="relative mt-4">
             <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">⌕</span>
-            <input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar por academia, líder ou data..." className="w-full rounded-2xl border border-slate-200 bg-white py-3 pl-10 pr-4 text-[14px] shadow-sm outline-none focus:border-slate-400" />
+            <input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar por unidade, líder ou data..." className="w-full rounded-2xl border border-slate-200 bg-white py-3 pl-10 pr-4 text-[14px] shadow-sm outline-none focus:border-slate-400" />
           </div>
 
-          <h2 className="mb-3 mt-7 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400">Recentes</h2>
+          <div className="mb-3 mt-7 flex items-center justify-between">
+            <h2 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">Histórico de Fichas</h2>
+            <span className="rounded-full bg-slate-200/70 px-2.5 py-0.5 text-[11px] font-medium text-slate-600">
+              {lista.length} {lista.length === 1 ? "salva" : "salvas"} no aparelho
+            </span>
+          </div>
 
           {filtrada.length === 0 && (
             <p className="rounded-2xl border border-dashed border-slate-300 p-8 text-center text-[13px] text-slate-500">
@@ -486,11 +577,33 @@ function Ficha() {
         </button>
       </div>
 
-      <div className="ficha mx-auto max-w-[820px] border-2 border-black bg-white text-black print:max-w-none print:border">
-        <div className="flex justify-center bg-white py-1">
-          <img src={brasao} alt="Grupo Águia Power" className="h-[84px] w-auto object-contain print:hidden" />
-          <img src={cabecalho.url} alt="Grupo Águia Power" className="hidden h-[84px] w-auto object-contain print:block" />
+      <div className="no-print mx-auto mb-4 max-w-[820px] rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">Etapas do Atendimento</p>
+          <button type="button" onClick={() => { const n = (window.prompt("Nome do técnico responsável:", tecnico) || "").trim(); if (n) salvarTecnico(n); }} className="rounded-full bg-slate-100 px-3 py-1 text-[12px] font-medium text-slate-700">
+            👤 {tecnico || "Definir técnico"} · ✏ Alterar
+          </button>
         </div>
+        {!d.entrada ? (
+          <button type="button" onClick={iniciarAtendimento} className="btn-ui mt-3 w-full rounded-xl bg-[#16a34a] py-3 text-[14px] font-bold text-white shadow-md">
+            ▶ Iniciar Atendimento
+          </button>
+        ) : (
+          <>
+            <div className="mt-3 grid grid-cols-3 gap-2 text-center">
+              <div className="rounded-xl bg-slate-50 p-2"><p className="text-[10px] uppercase text-slate-500">Entrada</p><p className="text-[15px] font-bold">{hm(d.entrada)}</p></div>
+              <div className="rounded-xl bg-slate-50 p-2"><p className="text-[10px] uppercase text-slate-500">{d.saida ? "Saída" : "Status"}</p><p className={`text-[15px] font-bold ${d.saida ? "" : "text-[#16a34a]"}`}>{d.saida ? hm(d.saida) : "● Em atendimento"}</p></div>
+              <div className="rounded-xl bg-slate-50 p-2"><p className="text-[10px] uppercase text-slate-500">{d.saida ? "Duração" : "Tempo decorrido"}</p><p className="text-[15px] font-bold tabular-nums">{d.saida ? duracao(d.saida - d.entrada) : cronometro(agoraMs - d.entrada)}</p></div>
+            </div>
+            <button type="button" onClick={finalizarAtendimento} className="btn-ui mt-3 w-full rounded-xl bg-[#dc2626] py-3 text-[14px] font-bold text-white shadow-md">
+              {d.saida ? "↻ Reenviar Conclusão · WhatsApp + PDF" : "■ Finalizar Atendimento · WhatsApp + PDF"}
+            </button>
+          </>
+        )}
+      </div>
+
+      <div className="ficha mx-auto max-w-[820px] border-2 border-black bg-white text-black print:max-w-none print:border">
+        <img src={cabecalho.url} alt="Grupo Águia Power" className="block w-full" />
 
         <div className="border-y-2 border-black bg-[#c9daf8] py-0.5 text-center text-[12px] font-bold uppercase">
           GCR Sistemas de Seguranca / Aguia Power CNPJ: 44.683.082/0001-91
