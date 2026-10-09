@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 type Alvo = { el: HTMLInputElement | HTMLTextAreaElement; rotulo: string; multi: boolean };
 
 function rotuloDe(el: HTMLElement): string {
-  const r = el.dataset.rotulo;
+  const r = el.dataset["rotulo"];
   if (r) return r;
   const span = el.parentElement?.querySelector("span");
   return (span?.textContent || "Campo").replace(/:\s*$/, "");
