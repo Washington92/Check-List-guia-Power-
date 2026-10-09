@@ -64,16 +64,16 @@ export function EditorFoco({ escopo = ".ficha" }: { escopo?: string }) {
   };
 
   return (
-    <div className="editor-foco no-print fixed inset-0 z-[60] flex flex-col bg-[#0b1f5c]/45 backdrop-blur-[2px]" onClick={() => setAlvo(null)}>
-      <div className="border-b-4 border-[#1d4ed8] bg-white shadow-2xl" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between gap-3 bg-[#14213d] px-4 py-2.5 text-white">
-          <button type="button" onClick={() => setAlvo(null)} className="rounded-full px-2 py-1 text-[13px] font-semibold text-white/80">
-            ✕ Fechar
-          </button>
-          <span className="min-w-0 truncate text-center text-[12px] font-bold uppercase tracking-[0.1em]">{alvo.rotulo}</span>
-          <button type="button" onClick={concluir} className="btn-ui shrink-0 rounded-full bg-[#16a34a] px-4 py-1.5 text-[13px] font-bold text-white shadow">
-            ✔ Concluir
-          </button>
+    <div
+      className="editor-foco no-print fixed inset-0 z-[60] flex items-start justify-center bg-[#0b1f5c]/40 px-4 pt-[12vh] backdrop-blur-md animate-in fade-in duration-150"
+      onClick={() => setAlvo(null)}
+    >
+      <div
+        className="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-black/10 animate-in zoom-in-95 duration-150"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="border-b border-slate-200 bg-[#14213d] px-4 py-3 text-center">
+          <span className="block truncate text-[12px] font-bold uppercase tracking-[0.12em] text-white">{alvo.rotulo}</span>
         </div>
         <div className="p-4">
           <textarea
@@ -90,10 +90,15 @@ export function EditorFoco({ escopo = ".ficha" }: { escopo?: string }) {
             enterKeyHint={alvo.multi ? "enter" : "done"}
             className="w-full resize-none rounded-xl border-2 border-[#1d4ed8]/40 bg-[#f5f8ff] px-4 py-3 text-[16px] leading-relaxed text-black outline-none focus:border-[#1d4ed8]"
           />
-          <div className="mt-1.5 flex justify-between text-[11px] text-slate-500">
-            <span>{alvo.multi ? "Toque em Concluir para salvar na ficha" : "Enter ou Concluir para salvar"}</span>
-            <span>{texto.length} caracteres</span>
-          </div>
+          <div className="mt-1.5 text-right text-[11px] text-slate-500">{texto.length} caracteres</div>
+        </div>
+        <div className="grid grid-cols-2 gap-3 border-t border-slate-200 bg-slate-50 px-4 py-3">
+          <button type="button" onClick={() => setAlvo(null)} className="btn-ui rounded-full bg-[#dc2626] py-2.5 text-[14px] font-bold text-white shadow">
+            Cancelar
+          </button>
+          <button type="button" onClick={concluir} className="btn-ui rounded-full bg-[#16a34a] py-2.5 text-[14px] font-bold text-white shadow">
+            Concluir
+          </button>
         </div>
       </div>
     </div>
