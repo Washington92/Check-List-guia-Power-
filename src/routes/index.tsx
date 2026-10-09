@@ -4,6 +4,7 @@ import { FotosEditor, FotosImpressao, type Foto } from "@/components/FotosServic
 import brasao from "@/assets/brasao.png";
 import cabecalho from "@/assets/cabecalho.png.asset.json";
 import { SignaturePad } from "@/components/SignaturePad";
+import { EditorFoco } from "@/components/EditorFoco";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -540,6 +541,7 @@ function Ficha() {
 
   return (
     <div className="min-h-screen bg-neutral-200 pb-24 print:bg-white print:pb-0">
+      <EditorFoco />
       <div className="no-print sticky top-0 z-20 mb-4 border-b border-neutral-300 bg-white px-4 py-2 shadow-sm">
         <div className="mx-auto flex max-w-[820px] items-center gap-3">
           <button type="button" onClick={() => setAtualId(null)} className="shrink-0 rounded-md border border-neutral-400 px-3 py-1.5 text-[13px] font-semibold" aria-label="Voltar ao histórico">
@@ -659,7 +661,7 @@ function Ficha() {
         <div className="flex items-center gap-2 px-3 pb-3">
           <Caixa checked={d.outros} onChange={set("outros")} />
           <span className="text-[11.5px] font-medium uppercase">Outros</span>
-          <input value={d.outrosTexto} onChange={(e) => set("outrosTexto")(e.target.value)} className={`${inputClass} border-b border-black`} />
+          <input value={d.outrosTexto} data-rotulo="Outros serviços" onChange={(e) => set("outrosTexto")(e.target.value)} className={`${inputClass} border-b border-black`} />
         </div>
 
         <div className="px-3 pb-3">
@@ -667,6 +669,7 @@ function Ficha() {
             rows={4}
             value={d.descricao}
             onChange={(e) => set("descricao")(e.target.value)}
+            data-rotulo="Descrição do serviço"
             placeholder="Descrição do serviço..."
             className="w-full resize-none border border-black p-2 text-[12px] outline-none focus:bg-yellow-50 print:placeholder:text-transparent print:focus:bg-transparent"
           />
@@ -692,10 +695,11 @@ function Ficha() {
             <span className="whitespace-nowrap text-[12px] uppercase">
               Se não realizado especificar o motivo:
             </span>
-            <input value={d.motivo} onChange={(e) => set("motivo")(e.target.value)} className={`${inputClass} border-b border-black`} />
+            <input value={d.motivo} data-rotulo="Se não realizado, especificar o motivo" onChange={(e) => set("motivo")(e.target.value)} className={`${inputClass} border-b border-black`} />
           </div>
           <textarea
             value={d.motivoDetalhe}
+            data-rotulo="Motivo — detalhamento"
             onChange={(e) => set("motivoDetalhe")(e.target.value)}
             rows={2}
             className="mt-2 w-full resize-none border border-black p-2 text-[12px] outline-none focus:bg-yellow-50 print:focus:bg-transparent"
@@ -707,10 +711,11 @@ function Ficha() {
             <span className="whitespace-nowrap text-[12px] uppercase">
               Material necessario para concluir o serviço:
             </span>
-            <input value={d.material} onChange={(e) => set("material")(e.target.value)} className={`${inputClass} border-b border-black`} />
+            <input value={d.material} data-rotulo="Material necessário para concluir o serviço" onChange={(e) => set("material")(e.target.value)} className={`${inputClass} border-b border-black`} />
           </div>
           <textarea
             value={d.materialDetalhe}
+            data-rotulo="Material necessário — detalhamento"
             onChange={(e) => set("materialDetalhe")(e.target.value)}
             rows={3}
             className="mt-2 w-full resize-none border border-black p-2 text-[12px] outline-none focus:bg-yellow-50 print:focus:bg-transparent"
@@ -776,7 +781,7 @@ function VersoMateriais({
                   value={linha.especificacao}
                   placeholder="Ex.: Cabo UTP cat. 6"
                   onChange={(e) => update(linha.id, { especificacao: e.target.value })}
-                  className="pill-input w-full rounded-full border border-neutral-300 bg-neutral-50 px-3 py-1 outline-none focus:border-[#0b1f5c] print:placeholder:text-transparent"
+                  className="pill-input w-full rounded-full border border-neutral-300 bg-neutral-50 px-3 py-2 text-[16px] outline-none print:py-1 print:text-[14px] focus:border-[#0b1f5c] print:placeholder:text-transparent"
                 />
               </div>
               <div className="border-r border-black p-1 print:p-0">
@@ -785,7 +790,7 @@ function VersoMateriais({
                   value={linha.quantidade}
                   onChange={(e) => update(linha.id, { quantidade: e.target.value })}
                   inputMode="decimal"
-                  className="pill-input w-full rounded-full border border-neutral-300 bg-neutral-50 px-2 py-1 text-center outline-none focus:border-[#0b1f5c]"
+                  className="pill-input w-full rounded-full border border-neutral-300 bg-neutral-50 px-2 py-2 text-center text-[16px] print:py-1 print:text-[14px] outline-none focus:border-[#0b1f5c]"
                 />
               </div>
               <div className="flex items-center gap-1 p-1 print:justify-center print:p-0">
@@ -796,7 +801,7 @@ function VersoMateriais({
                       key={u}
                       type="button"
                       onClick={() => update(linha.id, { unidade: linha.unidade === u ? "" : u })}
-                      className={`flex-1 rounded-full py-1 font-sans text-[10px] font-bold transition ${linha.unidade === u ? "bg-[#0b1f5c] text-white shadow" : "text-neutral-600"}`}
+                      className={`flex-1 rounded-full py-2 font-sans text-[11px] font-bold transition ${linha.unidade === u ? "bg-[#0b1f5c] text-white shadow" : "text-neutral-600"}`}
                     >
                       {u}
                     </button>
