@@ -49,12 +49,6 @@ export function EditorFoco({ escopo = ".ficha" }: { escopo?: string }) {
     };
   }, [alvo]);
 
-  useEffect(() => {
-    const t = campo.current;
-    if (!t) return;
-    t.style.height = "auto";
-    t.style.height = `${Math.min(t.scrollHeight, alvo?.multi ? 260 : 120)}px`;
-  }, [texto, alvo]);
 
   if (!alvo) return null;
 
@@ -65,21 +59,20 @@ export function EditorFoco({ escopo = ".ficha" }: { escopo?: string }) {
 
   return (
     <div
-      className="editor-foco no-print fixed inset-0 z-[60] flex items-start justify-center bg-[#0b1f5c]/40 px-4 pt-[12vh] backdrop-blur-md animate-in fade-in duration-150"
+      className="editor-foco no-print fixed inset-0 z-[60] flex items-start justify-center bg-[#0b1f5c]/40 px-2 pt-[3vh] backdrop-blur-md animate-in fade-in duration-150"
       onClick={() => setAlvo(null)}
     >
       <div
-        className="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-black/10 animate-in zoom-in-95 duration-150"
+        className="w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-black/10 animate-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="border-b border-slate-200 bg-[#14213d] px-4 py-3 text-center">
           <span className="block truncate text-[12px] font-bold uppercase tracking-[0.12em] text-white">{alvo.rotulo}</span>
         </div>
-        <div className="p-4">
+        <div className="p-3">
           <textarea
             ref={campo}
             value={texto}
-            rows={alvo.multi ? 5 : 1}
             onChange={(e) => setTexto(e.target.value)}
             onKeyDown={(e) => {
               if (!alvo.multi && e.key === "Enter") {
@@ -88,7 +81,8 @@ export function EditorFoco({ escopo = ".ficha" }: { escopo?: string }) {
               }
             }}
             enterKeyHint={alvo.multi ? "enter" : "done"}
-            className="w-full resize-none rounded-xl border-2 border-[#1d4ed8]/40 bg-[#f5f8ff] px-4 py-3 text-[16px] leading-relaxed text-black outline-none focus:border-[#1d4ed8]"
+            style={{ height: alvo.multi ? "34vh" : "18vh" }}
+            className="block w-full resize-none rounded-xl border-2 border-[#1d4ed8]/40 bg-[#f5f8ff] px-4 py-3 text-[17px] leading-relaxed text-black outline-none focus:border-[#1d4ed8]"
           />
           <div className="mt-1.5 text-right text-[11px] text-slate-500">{texto.length} caracteres</div>
         </div>
