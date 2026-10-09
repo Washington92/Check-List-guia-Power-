@@ -458,10 +458,10 @@ function Ficha() {
       ? lista.filter((r) => `${r.dados.local} ${r.dados.dataHora} ${r.dados.lider} ${r.dados.colaborador}`.toLowerCase().includes(q))
       : lista;
     return (
-      <div className="min-h-screen bg-slate-50 px-5 pb-10 pt-8 text-slate-900">
+      <div className="min-h-screen bg-slate-100 pb-28 text-slate-900">
         <div className="mx-auto max-w-[640px]">
-          <header className="relative flex flex-col items-center text-center">
-            <div className="absolute right-0 top-0">
+          <header className="relative flex flex-col items-center bg-white px-5 pb-3 pt-6 text-center">
+            <div className="absolute right-4 top-4">
               <button type="button" onClick={() => setOpcoes((v) => !v)} className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[12px] font-medium text-slate-600 shadow-sm">
                 Opções
               </button>
@@ -479,60 +479,58 @@ function Ficha() {
             <h1 className="text-[13px] font-medium text-slate-500">Fichas Técnicas</h1>
           </header>
 
-          <button type="button" onClick={novaFicha} className="mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-[#14213d] px-4 py-4 text-[15px] font-semibold text-white shadow-md transition active:scale-[0.99]">
-            <span className="text-[20px] leading-none">+</span> Iniciar Nova Ficha
-          </button>
-
-          <div className="relative mt-4">
-            <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">⌕</span>
-            <input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar por unidade, líder ou data..." className="w-full rounded-2xl border border-slate-200 bg-white py-3 pl-10 pr-4 text-[14px] shadow-sm outline-none focus:border-slate-400" />
-          </div>
-
-          <div className="mb-3 mt-7 flex items-center justify-between">
-            <h2 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">Histórico de Fichas</h2>
-            <span className="rounded-full bg-slate-200/70 px-2.5 py-0.5 text-[11px] font-medium text-slate-600">
-              {lista.length} {lista.length === 1 ? "salva" : "salvas"} no aparelho
+          <div className="flex items-center justify-between bg-blue-600 px-5 py-4 text-white shadow-md">
+            <h2 className="text-[18px] font-semibold">Checklist Grupo Águia Power</h2>
+            <span className="rounded-full bg-white/20 px-2.5 py-0.5 text-[11px] font-medium">
+              {lista.length} {lista.length === 1 ? "salva" : "salvas"}
             </span>
           </div>
 
+          <div className="bg-white px-4 py-3">
+            <div className="relative">
+              <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">⌕</span>
+              <input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar por unidade, líder ou data..." className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-[14px] outline-none focus:border-blue-500" />
+            </div>
+          </div>
+
           {filtrada.length === 0 && (
-            <p className="rounded-2xl border border-dashed border-slate-300 p-8 text-center text-[13px] text-slate-500">
-              {lista.length === 0 ? "Nenhuma ficha ainda. Toque em “Iniciar nova ficha”." : "Nenhuma ficha encontrada."}
+            <p className="m-4 rounded-2xl border border-dashed border-slate-300 p-8 text-center text-[13px] text-slate-500">
+              {lista.length === 0 ? "Nenhuma ficha ainda. Toque no botão + para iniciar." : "Nenhuma ficha encontrada."}
             </p>
           )}
 
-          <ul className="space-y-3">
+          <ul className="divide-y divide-slate-200 border-y border-slate-200">
             {filtrada.map((r) => {
-              const pc = progresso(r.dados);
-              const badge = r.dados.sucesso
-                ? "bg-emerald-50 text-emerald-700"
-                : r.dados.naoRealizado
-                  ? "bg-rose-50 text-rose-700"
-                  : "bg-amber-50 text-amber-700";
+              const cor = r.dados.sucesso ? "text-green-600" : r.dados.naoRealizado ? "text-red-600" : "text-amber-500";
+              const icone = r.dados.sucesso ? "✔" : r.dados.naoRealizado ? "✕" : "●";
               return (
-                <li key={r.id} className="group relative rounded-2xl border border-slate-200/70 bg-white p-4 shadow-sm transition hover:shadow-md">
-                  <button type="button" onClick={() => abrir(r.dados, r.id)} className="absolute inset-0 rounded-2xl" aria-label={`Abrir ficha ${r.dados.local || "sem local"}`} />
-                  <div className="pointer-events-none flex items-start justify-between gap-3">
-                    <p className="truncate text-[16px] font-semibold">{r.dados.local || "Sem local"}</p>
-                    <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-medium ${badge}`}>● {statusTxt(r.dados)}</span>
+                <li key={r.id} className="relative flex items-center gap-4 bg-slate-50 px-4 py-4 active:bg-slate-200">
+                  <button type="button" onClick={() => abrir(r.dados, r.id)} className="absolute inset-0" aria-label={`Abrir ficha ${r.dados.local || "sem local"}`} />
+                  <div className="pointer-events-none flex h-12 w-16 shrink-0 items-center justify-center rounded-md border-2 border-slate-500 bg-white px-1 text-center text-[13px] font-bold uppercase tracking-wide text-slate-700">
+                    <span className="truncate">{r.dados.sigla || "—"}</span>
                   </div>
-                  <p className="pointer-events-none mt-1 text-[12px] text-slate-500">
-                    {r.dados.dataHora || new Date(r.atualizado).toLocaleString("pt-BR")} · {r.dados.lider || "Sem líder"} · {r.dados.fotos.length} foto(s)
-                  </p>
-                  <div className="mt-4 flex items-center gap-3">
-                    <div className="pointer-events-none h-1 flex-1 rounded-full bg-slate-100">
-                      <div className="h-1 rounded-full bg-[#14213d]" style={{ width: `${pc}%` }} />
-                    </div>
-                    <span className="pointer-events-none text-[11px] text-slate-400">{pc}%</span>
-                    <button type="button" onClick={() => duplicar(r)} className="relative rounded-full px-2 py-1 text-[12px] text-slate-500 hover:bg-slate-100" aria-label="Duplicar">⧉</button>
-                    <button type="button" onClick={() => excluir(r.id)} className="relative rounded-full px-2 py-1 text-[12px] text-rose-500 hover:bg-rose-50" aria-label="Excluir">✕</button>
-                    <span className="pointer-events-none text-[18px] text-slate-300">›</span>
+                  <div className="pointer-events-none min-w-0 flex-1">
+                    <p className="flex items-center gap-1.5 truncate text-[16px] font-semibold text-slate-800">
+                      <span className={`text-[15px] ${cor}`} title={statusTxt(r.dados)}>{icone}</span>
+                      <span className="truncate">{r.dados.local || "Sem local"}</span>
+                    </p>
+                    <p className="mt-0.5 flex items-center gap-1.5 text-[13px] text-slate-500">
+                      <span className="text-blue-600">📅</span>
+                      {r.dados.dataHora || new Date(r.atualizado).toLocaleString("pt-BR")}
+                    </p>
                   </div>
+                  <button type="button" onClick={() => duplicar(r)} className="relative rounded-full px-2 py-1 text-[13px] text-slate-500 hover:bg-slate-200" aria-label="Duplicar">⧉</button>
+                  <button type="button" onClick={() => excluir(r.id)} className="relative rounded-full px-2 py-1 text-[13px] text-red-500 hover:bg-red-50" aria-label="Excluir">✕</button>
+                  <span className="pointer-events-none text-[24px] leading-none text-slate-400">›</span>
                 </li>
               );
             })}
           </ul>
         </div>
+
+        <button type="button" onClick={novaFicha} aria-label="Iniciar nova ficha" className="fixed bottom-6 right-6 z-30 flex h-14 w-14 items-center justify-center rounded-full bg-blue-600 text-[30px] leading-none text-white shadow-xl transition active:scale-95">
+          +
+        </button>
       </div>
     );
   }
